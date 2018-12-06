@@ -114,7 +114,7 @@ def secure(response: Response):
                                              "camera 'self'; magnetometer 'self'; gyroscope 'self'; speaker 'self'; " \
                                              "fullscreen *; payment 'self'; "
         if request.remote_addr == "127.0.0.1":
-            response.headers["X-Elevated-Token"] = TOKEN
+            response.headers["X-Localhost-Token"] = TOKEN
 
     return response
 
@@ -332,7 +332,7 @@ def getfeaturedprojects():
     return jsonify_projects(projects, username, usertype)
 
 
-# Proxy images to avoid tainted canvases when thumbnailing
+# Proxy images to avoid tainted canvases when thumbnailing.
 @app.route("/api/proxyimage", methods=["GET"])
 def proxyimage():
     url = request.args.get("url", '')
@@ -345,14 +345,13 @@ def proxyimage():
     if not resp.headers["Content-Type"].startswith("image/"):
         raise Exception("Not a valid image")
 
+    # See https://stackoverflow.com/a/36601467/1345238
     excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
     headers = [(name, value) for (name, value) in resp.raw.headers.items()
                if name.lower() not in excluded_headers]
 
     response = Response(resp.content, resp.status_code, headers)
     return response
-
-
 
 
 # Admin endpoints
