@@ -6,6 +6,7 @@ import sys
 import base64
 from html import escape
 from urllib import parse
+from weeadmin import TOKEN
 from typing import Union, List, Tuple
 
 import requests
@@ -103,14 +104,18 @@ def fourohfour(e):
 
 @app.after_request
 def secure(response: Response):
-    response.headers["Content-Security-Policy"] = "script-src 'self' 'unsafe-inline';"
-    response.headers["X-Frame-Options"] = "SAMEORIGIN"
-    response.headers["X-Xss-Protection"] = "1; mode=block"
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["Referrer-Policy"] = "no-referrer-when-downgrade"
-    response.headers["Feature-Policy"] = "geolocation 'self'; midi 'self'; sync-xhr 'self'; microphone 'self'; camera " \
-                                         "'self'; magnetometer 'self'; gyroscope 'self'; speaker 'self'; fullscreen *; " \
-                                         "payment 'self'; "
+    if not request.path[-3:] in ["jpg", "png", "gif"]:
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        response.headers["X-Xss-Protection"] = "1; mode=block"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Content-Security-Policy"] = "script-src 'self' 'unsafe-inline';"
+        response.headers["Referrer-Policy"] = "no-referrer-when-downgrade"
+        response.headers["Feature-Policy"] = "geolocation 'self'; midi 'self'; sync-xhr 'self'; microphone 'self'; " \
+                                             "camera 'self'; magnetometer 'self'; gyroscope 'self'; speaker 'self'; " \
+                                             "fullscreen *; payment 'self'; "
+        if request.remote_addr == "127.0.0.1":
+            response.headers["X-Elevated-Token"] = TOKEN
+
     return response
 
 
@@ -346,6 +351,8 @@ def proxyimage():
 
     response = Response(resp.content, resp.status_code, headers)
     return response
+
+
 
 
 # Admin endpoints
