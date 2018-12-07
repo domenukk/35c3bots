@@ -6,7 +6,7 @@ import sys
 import base64
 from html import escape
 from urllib import parse
-from flags import LOGGED_IN, TOKEN
+from flags import LOGGED_IN, TOKEN, DB_SECRET
 from typing import Union, List, Tuple
 
 import requests
@@ -34,6 +34,8 @@ def init_db():
         db = get_db()
         with open(MIGRATION_PATH, "r") as f:
             db.cursor().executescript(f.read())
+        db.execute("CREATE TABLE `secrets`(`id` INTEGER PRIMARY KEY AUTOINCREMENT, `secret` varchar(255) NOT NULL)")
+        db.execute("INSERT INTO secrets(secret) values(?)", (DB_SECRET,))
         db.commit()
 
 
@@ -85,9 +87,8 @@ def jsonify_projects(projects, username, usertype):
          "lastModified": x[5],
          "created": x[6],
          "content": x[7]
-         } for x in projects if x[1] == username or x[3] or usertype == "admin"
+         } for x in projects if usertype == "admin" or x[1] == username or x[3]
     ])
-
 
 @app.teardown_appcontext
 def close_connection(exception):
@@ -178,8 +179,9 @@ def login():
     # TODO Send Mail
     json = request.get_json(force=True)
     login = json["email"].strip()
-    userid, name, email = query_db("SELECT id, name, email FROM users WHERE email=? OR name=?", (login, login))
-    if not userid:
+    try:
+        userid, name, email = query_db("SELECT id, name, email FROM users WHERE email=? OR name=?", (login, login))
+    except Exception as ex:
         raise Exception("UserDoesNotExist")
     return get_code(name)
 
@@ -190,7 +192,7 @@ def verify():
     # TokenAndName tokenAndName = paperbots.verifyCode(request.code);
     code = request.get_json(force=True)["code"].strip()
     if not code:
-        raise Exception("Verify me please.")
+        raise Exception("CouldNotVerifyCode")
     userid, = query_db("SELECT userId FROM userCodes WHERE code=?", code)
     db = get_db()
     c = db.cursor()
@@ -212,6 +214,7 @@ def logout():
     resp = make_response()
     resp.set_cookie("token", "")
     resp.set_cookie("name", "")
+    resp.set_cookie("logged_in", "")
     return resp
 
 
@@ -227,10 +230,8 @@ def getproject():
         usertype = "user"
     project = query_db("SELECT code, userName, title, description, content, public, type, lastModified, created "
                        "FROM projects WHERE code=?", (project_id,))
-    if not project:
-        raise Exception("What is this")
-    if not project[5] and not name == project[1] and not usertype == "admin":
-        raise Exception("Get a life.")
+    if not project or (not project[5] and not name == project[1] and not usertype == "admin"):
+        raise Exception("ProjectDoesNotExist")
     return jsonify({
         "code": project[0],
         "userName": project[1],
@@ -255,17 +256,12 @@ def getuserprojects():
         userId, name, email, usertype = user_by_token(request.cookies["token"])
     return jsonify_projects(projects, name, usertype)
 
-    # TODO:
-    # app.post("/api/getprojects", ctx -> {
-    #    ProjectsRequest request = ctx.bodyAsClass(ProjectsRequest.class);
-    #    ctx.json(paperbots.getUserProjects(ctx.cookie("token"), request.userName, request.worldData));
-    # });
-
 
 @app.route("/api/saveproject", methods=["POST"])
 def saveproject():
     json = request.get_json(force=True)
-    token = request.cookies.get("token").strip()
+    name = request.cookies["name"]
+    token = request.cookies["token"]
     # TODO String projectId = paperbots.saveProject(ctx.cookie("token"), request.getCode(), request.getTitle(), request.getDescription(), request.getContent(), request.isPublic(), request.getType());
     userId, username, email, usertype = user_by_token(token)
 
@@ -293,6 +289,10 @@ def saveproject():
 
 @app.route("/api/savethumbnail", methods=["POST"])
 def savethumbnail():
+    name = request.cookies["name"]
+    token = request.cookies["token"]
+    userId, username, email, usertype = user_by_token(token)
+
     json = request.get_json(force=True)
     thumbnail = json["thumbnail"]  # type: str
     project_id = json["projectId"]
@@ -300,7 +300,6 @@ def savethumbnail():
         raise Exception("Hacker")
     thumbnail = thumbnail[len("data:image/png;base64,"):].encode("ascii")
     decoded = base64.b64decode(thumbnail)
-    userId, username, email, usertype = user_by_token(request.cookies["token"])
     project_username, = query_db("SELECT userName FROM projects WHERE code=?", (project_id,))
     if project_username != username:
         raise Exception("Hack on WeeLang, not the Server!")
@@ -311,6 +310,7 @@ def savethumbnail():
 
 @app.route("/api/deleteproject", methods=["POST"])
 def deleteproject():
+    name = request.cookies["name"]
     token = request.cookies["token"]
     userid, username, email, usertype = user_by_token(token)
     json = request.get_json(force=True)
@@ -326,16 +326,49 @@ def deleteproject():
     return {"projectId": projectid}
 
 
+# Admin endpoints
+@app.route("/api/getprojectsadmin", methods=["POST"])
+def getprojectsadmin():
+    # ProjectsRequest request = ctx.bodyAsClass(ProjectsRequest.class);
+    # ctx.json(paperbots.getProjectsAdmin(ctx.cookie("token"), request.sorting, request.dateOffset));
+    name = request.cookies["name"]
+    token = request.cookies["token"]
+    user, username, email, usertype = user_by_token(request.cookies["token"])
+
+    json = request.get_json(force=True)
+    offset = json["offset"]
+    sorting = json["sorting"]
+
+    if name != "admin":
+        raise Exception("InvalidUserName")
+
+    sortings = {
+        "newest": "created DESC",
+        "oldest": "created ASC",
+        "lastmodified": "lastModified DESC"
+    }
+    sql_sorting = sortings[sorting]
+
+    if not offset:
+        offset = datetime.datetime.now()
+
+    return jsonify_projects(query_db(
+        "SELECT code, userName, title, public, type, lastModified, created, content FROM projects WHERE created < '{}' "
+        "ORDER BY {} LIMIT 10".format(offset, sql_sorting), one=False), username, "admin")
+
+
 @app.route("/api/getfeaturedprojects", methods=["POST"])
 def getfeaturedprojects():
     try:
-        userid, username, email, usertype = user_by_token(request.cookies["token"])
+        name = request.cookies["name"]
+        token = request.cookies["token"]
+        userid, username, email, usertype = user_by_token(token)
     except Exception as ex:
         username = ""
         usertype = "user"
 
     projects = query_db("SELECT code, userName, title, type, lastModified, created, content FROM projects "
-                        "WHERE featured=1 AND public=1 ORDER BY lastModified DESC", (), False)
+                        "WHERE featured=1 AND public=1 ORDER BY lastModified DESC", one=False)
     return jsonify_projects(projects, username, usertype)
 
 
@@ -359,14 +392,6 @@ def proxyimage():
 
     response = Response(resp.content, resp.status_code, headers)
     return response
-
-
-# Admin endpoints
-@app.route("/api/getprojectsadmin", methods=["POST"])
-def getprojectsadmin():
-    # ProjectsRequest request = ctx.bodyAsClass(ProjectsRequest.class);
-    # ctx.json(paperbots.getProjectsAdmin(ctx.cookie("token"), request.sorting, request.dateOffset));
-    pass
 
 
 if __name__ == "__main__":
