@@ -6,7 +6,7 @@ import sys
 import base64
 from html import escape
 from urllib import parse
-from weeadmin import TOKEN
+from flags import LOGGED_IN, TOKEN
 from typing import Union, List, Tuple
 
 import requests
@@ -102,6 +102,11 @@ def fourohfour(e):
     return send_file(os.path.join(STATIC_PATH, "404.html")), 404
 
 
+@app.errorhandler(500)
+def fivehundred(e):
+    return jsonify({"error": str(e)}), 500
+
+
 @app.after_request
 def secure(response: Response):
     if not request.path[-3:] in ["jpg", "png", "gif"]:
@@ -159,17 +164,18 @@ def signup():
         raise Exception("UserExists")
     if query_db("Select id, name FROM users WHERE email=?", email):
         raise Exception("EmailExists")
-    # Insert user // TODO: and send verification email
-    return jsonify({
-        "name": name,
-        "code": get_code(name)
-    })
+    # Insert user // TODO: implement the verification email
+    db = get_db()
+    c = db.cursor()
+    c.execute("INSERT INTO users(name, email, type) values(?, ?, ?)", (name, email, usertype))
+    db.commit()
+    return jsonify({"success": True})
 
 
 @app.route("/api/login", methods=["POST"])
 def login():
     print("Logging in?")
-    # TODO
+    # TODO Send Mail
     json = request.get_json(force=True)
     login = json["email"].strip()
     userid, name, email = query_db("SELECT id, name, email FROM users WHERE email=? OR name=?", (login, login))
@@ -196,6 +202,7 @@ def verify():
     resp = make_response()
     resp.set_cookie("token", token, max_age=2 ** 31 - 1)
     resp.set_cookie("name", name, max_age=2 ** 31 - 1)
+    resp.set_cookie("logged_in", LOGGED_IN)
     return resp
 
 
