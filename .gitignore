@@ -8,3 +8,5 @@ __pycache__
 venv
 *.db
 thumbnails
+node_modules
+client/src/**.js
