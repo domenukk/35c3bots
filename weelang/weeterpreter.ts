@@ -2,7 +2,7 @@ import * as flags from "./flags";
 import * as compiler from "../client/src/language/Compiler"
 import {VirtualMachine, VirtualMachineState} from "../client/src/language/VirtualMachine";
 
-declare let BigInt: number
+declare let BigInt: any
 
 function get_headless_externals() {
     const externals = new compiler.ExternalFunctionsTypesConstants();
@@ -12,25 +12,19 @@ function get_headless_externals() {
         "alert",
         [{name: "message", type: compiler.StringType}], compiler.NothingType,
         false,
-        (value: string) => {
-            console.log(value);
-        }
+        console.log
     )
     externals.addFunction(
         "alert",
         [{name: "value", type: compiler.NumberType}], compiler.NothingType,
         false,
-        (value: number) => {
-            console.log(value)
-        }
+        console.log
     )
     externals.addFunction(
         "alert",
         [{name: "value", type: compiler.BooleanType}], compiler.NothingType,
         false,
-        (value: string) => {
-            console.log(value)
-        }
+        console.log
     )
 
     // pyserver
@@ -51,15 +45,9 @@ function get_headless_externals() {
         ], compiler.StringType,
         false,
         (base: string, exponent: string, modulus: string) => {
-            //console.log("->bigModPow")
-            // @ts-ignore
             let b = BigInt(base)
-            // @ts-ignore
             let e = BigInt(exponent)
-            // @ts-ignore
             let N = BigInt(modulus)
-            //console.log("<-bigModPow",b, e, N)
-            // @ts-ignore
             return eval('""+((b ** e) % N)') // force js since tsc translates ** to Math.Pow... *rolls eyes*
         }
     )
@@ -68,12 +56,9 @@ function get_headless_externals() {
         [{name: "str", type: compiler.StringType}], compiler.StringType,
         false,
         (str: string) => {
-            // @ts-ignore
             let res = BigInt(0);
             for (const c of str) {
-                // @ts-ignore
                 res *= BigInt(256)
-                // @ts-ignore
                 res += BigInt(c.charCodeAt(0)%256)
             }
             return ""+res
