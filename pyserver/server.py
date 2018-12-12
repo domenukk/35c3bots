@@ -6,8 +6,10 @@ import sys
 import base64
 from html import escape
 from urllib import parse
-from flags import LOGGED_IN, TOKEN, DB_SECRET
+from flags import LOGGED_IN, TOKEN, DB_SECRET, NULL
 from typing import Union, List, Tuple
+
+from subprocess import STDOUT, check_output
 
 import requests
 from flask import Flask, send_from_directory, send_file, request, Response, g, make_response, jsonify
@@ -16,6 +18,8 @@ STATIC_PATH = "../client/site"
 DATABASE = ".paperbots.db"
 MIGRATION_PATH = "./db/V1__Create_tables.sql"
 THUMBNAIL_PATH = os.path.join(STATIC_PATH, "thumbnails")
+WEE_PATH = "../weelang"
+WEE_TIMEOUT = 5
 
 os.makedirs(THUMBNAIL_PATH, exist_ok=True)
 
@@ -89,6 +93,7 @@ def jsonify_projects(projects, username, usertype):
          "content": x[7]
          } for x in projects if usertype == "admin" or x[1] == username or x[3]
     ])
+
 
 @app.teardown_appcontext
 def close_connection(exception):
@@ -333,7 +338,7 @@ def getprojectsadmin():
     # ctx.json(paperbots.getProjectsAdmin(ctx.cookie("token"), request.sorting, request.dateOffset));
     name = request.cookies["name"]
     token = request.cookies["token"]
-    user, username, email, usertype = user_by_token(request.cookies["token"])
+    user, username, email, usertype = user_by_token(token)
 
     json = request.get_json(force=True)
     offset = json["offset"]
@@ -392,6 +397,45 @@ def proxyimage():
 
     response = Response(resp.content, resp.status_code, headers)
     return response
+
+
+# Additional pyserver functions:
+
+# Wee as a service.
+def runwee(wee: string) -> string:
+    print("{}: running {}".format(request.remote_addr, wee))
+    result = check_output(["ts-node", os.path.join(WEE_PATH, "weeterpreter.ts"), wee],
+                          shell=False, stderr=STDOUT, timeout=WEE_TIMEOUT, cwd=WEE_PATH).decode("utf-8")
+    print("{}: result: {}".format(request.remote_addr, result))
+    return result
+
+
+@app.route("/wee/run", methods=["POST"])
+def weeservice():
+    json = request.get_json(force=True)
+    wee = json["code"]
+    out = runwee(wee)
+    return jsonify({"code": wee, "result": out})
+
+
+@app.route("/wee/dev/null", methods=["POST"])
+def dev_null():
+    json = request.get_json(force=True)
+    wee = json["code"]
+    wee = """
+    var NULL: string = '{}'
+    {}
+    """.format(NULL, wee)
+    _ = runwee(wee)
+    return "GONE"
+
+
+@app.route("/debug", methods=["POST"])
+def debug():
+    json = requests.get_json(force=True)
+    # TODO: Python Eval
+    # eval = json["eval"]
+    return ""
 
 
 if __name__ == "__main__":
