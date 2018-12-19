@@ -3,6 +3,18 @@
 
 [Paperbots](https://paperbots.io) is a browser-based programming environment geared towards beginners, teachers, as well as programmers who want a simple creative outlet.
 
+
+# 35c3 JuniorCTF Additions
+For Junior CTF, `./weelang` and `./pyserver` have been added.
+On top, all Dockerfiles in this folder are new.
+Flags and exploits are inside `./pyserver/exploits` 
+
+To run the challenge-server, simply do `docker-compose build && docker-compose up` in the main folder.
+
+Players should have access to `./pyserver/server.py` and `./weelang/weeterpreter.ts`.
+
+# < original content below >
+
 # Development
 Paperbots consists of a frontend written in TypeScript, and a backend written in Java.
 

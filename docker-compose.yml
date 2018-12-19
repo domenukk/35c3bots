@@ -1,0 +1,7 @@
+version: '3'
+services:
+  pyperbots:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8075:8075"

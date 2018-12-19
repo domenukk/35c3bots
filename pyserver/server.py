@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import random
 import sqlite3
@@ -432,7 +433,7 @@ def dev_null():
 
 @app.route("/debug", methods=["POST"])
 def debug():
-    json = requests.get_json(force=True)
+    json = request.get_json(force=True)
     # TODO: Python Eval
     # eval = json["eval"]
     return ""
@@ -441,4 +442,4 @@ def debug():
 if __name__ == "__main__":
     if not os.path.exists(DATABASE):
         init_db()
-    app.run()
+    app.run(host="0.0.0.0", port=8075)
