@@ -19,6 +19,8 @@ async function eval_in_chrome(script, ...args): Promise<string> {
     try {
         //console.log("running", script, ...args)
         const page = await browser.newPage()
+        //const response = await page.goto(`file:///${__dirname}/pypyjs.html`)
+        //console.log(response) Too slow :/
         const result = await page.evaluate(script, ...args)
         await page.close()
         // console.log("closed. returning.", result)
