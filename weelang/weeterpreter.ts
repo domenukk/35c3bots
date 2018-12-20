@@ -10,11 +10,12 @@ const doEvents = () => new Promise((resolve) => setImmediate(resolve));
 
 /**
  * Uses a recent chrome to run code inside the chrome sandbox.
- * @param script the code to run
- * @param args args, in case the script takes any.
+ * (Hint: there is no challenge here. If you can escape chrome, play the advanced ctf ;) )
+ * @param script: the code to run
+ * @param args: args, in case the script takes any.
  */
-async function sandboxed_eval(script, ...args): Promise<string> {
-    const browser = await puppeteer.launch()
+async function eval_in_chrome(script, ...args): Promise<string> {
+    const browser = await puppeteer.launch({args: ["--no-sandbox"]})
     try {
         //console.log("running", script, ...args)
         const page = await browser.newPage()
@@ -36,12 +37,12 @@ function wee_eval(expr: string): AsyncPromise<string> {
         value: null,
         stopVirtualMachine: false
     }
-    sandboxed_eval(expr).then((res) => {
+    eval_in_chrome(expr).then((res) => {
         //console.log("Result ", expr, res)
         asyncResult.value = res;
         asyncResult.completed = true
     }).catch((err) => {
-        console.log("Error in eval", expr, err)
+        console.log("Unexpectged error in eval", expr, err)
         asyncResult.value = "" + err;
         asyncResult.completed = true
     })
@@ -171,7 +172,7 @@ export async function wee_exec(code: string) {
 
 
 if (require.main === module) {
-    //sandboxed_eval("1+1")
+    //eval_in_chrome("1+1")
     const wee = process.argv[2];
     //console.log(wee)
     wee_exec(wee)
