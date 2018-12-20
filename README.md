@@ -6,7 +6,7 @@
 
 # 35c3 JuniorCTF Additions
 For Junior CTF, `./weelang` and `./pyserver` have been added.
-On top, all Dockerfiles in this folder are new.
+On top, all Dockerfiles and uwsgi.ini in this folder are new.
 Flags and exploits are inside `./pyserver/exploits` 
 
 To run the challenge-server, simply do `docker-compose build && docker-compose up` in the main folder.

@@ -1,8 +1,53 @@
+#!/usr/bin/env ts-node
 import * as flags from "./flags";
 import * as compiler from "../client/src/language/Compiler"
-import {VirtualMachine, VirtualMachineState} from "../client/src/language/VirtualMachine";
+import {AsyncPromise, VirtualMachine, VirtualMachineState} from "../client/src/language/VirtualMachine";
+
+import * as puppeteer from 'puppeteer';
 
 declare let BigInt: any
+const doEvents = () => new Promise((resolve) => setImmediate(resolve));
+
+/**
+ * Uses a recent chrome to run code inside the chrome sandbox.
+ * @param script the code to run
+ * @param args args, in case the script takes any.
+ */
+async function sandboxed_eval(script, ...args): Promise<string> {
+    const browser = await puppeteer.launch()
+    try {
+        //console.log("running", script, ...args)
+        const page = await browser.newPage()
+        const result = await page.evaluate(script, ...args)
+        await page.close()
+        // console.log("closed. returning.", result)
+        return result
+    } catch (e) {
+        //console.log("An eval error occurred: ", e)
+        return ""+e.message
+    } finally {
+        await browser.close()
+    }
+}
+
+function wee_eval(expr: string): AsyncPromise<string> {
+    let asyncResult: AsyncPromise<string> = {
+        completed: false,
+        value: null,
+        stopVirtualMachine: false
+    }
+    sandboxed_eval(expr).then((res) => {
+        //console.log("Result ", expr, res)
+        asyncResult.value = res;
+        asyncResult.completed = true
+    }).catch((err) => {
+        console.log("Error in eval", expr, err)
+        asyncResult.value = "" + err;
+        asyncResult.completed = true
+    })
+    return asyncResult
+}
+
 
 function get_headless_externals() {
     const externals = new compiler.ExternalFunctionsTypesConstants();
@@ -59,33 +104,39 @@ function get_headless_externals() {
             let res = BigInt(0);
             for (const c of str) {
                 res *= BigInt(256)
-                res += BigInt(c.charCodeAt(0)%256)
+                res += BigInt(c.charCodeAt(0) % 256)
             }
-            return ""+res
+            return "" + res
         }
     )
     externals.addFunction(
         "eval",
-        [{name: "value", type: compiler.StringType}], compiler.NothingType,
-        false,
-        (value: string) => {
-            //TODO: EVAL
-            console.log(value)
+        [{name: "expr", type: compiler.StringType}], compiler.StringType,
+        true,
+        (expr: string) => {
+            return wee_eval(expr)
         }
+    );
+    externals.addFunction(
+        "assert_equals",
+        [{name: "num", type: compiler.NumberType}], compiler.StringType,
+        false,
+        (num: number) => num === num
+            ? "EQUALITY WORKS" : flags.EQUALITY_ERROR
     )
     externals.addFunction(
         "assert_number",
-        [{name: "num", type: compiler.StringType}], compiler.NumberType,
+        [{name: "num", type: compiler.NumberType}], compiler.StringType,
         false,
-        (num: number) => num == NaN || num == Infinity || num !== num + 1
-            ? "NUMBERS WORK": flags.NUMBER_ERROR
+        (num: number) => !isFinite(num) || isNaN(num) || num !== num + 1
+            ? "NUMBERS WORK" : flags.NUMBER_ERROR
     )
     externals.addFunction(
         "assert_conversion",
         [{name: "str", type: compiler.StringType}], compiler.StringType,
         false,
-        (str: string) => str.length === +str+"".length || !/^[1-9]+(\.[1-9]+)?$/.test(str)
-            ? "Convert to Pastafarianism": flags.CONVERSION_ERROR
+        (str: string) => str.length === +str + "".length || !/^[1-9]+(\.[1-9]+)?$/.test(str)
+            ? "Convert to Pastafarianism" : flags.CONVERSION_ERROR
     )
     externals.addFunction(
         // Wee is statically typed. Finding a way to confuse the VM is impossible.
@@ -101,17 +152,18 @@ function get_headless_externals() {
         false,
         (maybe_leet: number) => maybe_leet !== 0x1337 ? "WEE AIN'T LEET" : flags.SIMPLE
     )
-    return externals;
+    return externals
 }
 
-export function wee_exec(code: string) {
+export async function wee_exec(code: string) {
     try {
         const compiled = compiler.compile(code, get_headless_externals())
         const vm = new VirtualMachine(compiled.functions, compiled.externalFunctions)
         while (vm.state != VirtualMachineState.Completed) {
-            vm.run(10000);
+            vm.run(10000)
+            await doEvents() // Excited about this name! VB6 <3. Nothing beats the good ol' "On Error Resume Next"...
         }
-        vm.restart();
+        vm.restart()
     } catch (ex) {
         console.error(ex.message)
     }
@@ -119,6 +171,7 @@ export function wee_exec(code: string) {
 
 
 if (require.main === module) {
+    //sandboxed_eval("1+1")
     const wee = process.argv[2];
     //console.log(wee)
     wee_exec(wee)
