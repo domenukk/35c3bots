@@ -1,12 +1,29 @@
 #!/usr/bin/env ts-node
-import * as flags from "./flags";
+import * as flags from "./flags"
 import * as compiler from "../client/src/language/Compiler"
-import {AsyncPromise, VirtualMachine, VirtualMachineState} from "../client/src/language/VirtualMachine";
-
-import * as puppeteer from 'puppeteer';
+import {AsyncPromise, VirtualMachine, VirtualMachineState} from "../client/src/language/VirtualMachine"
+import * as puppeteer from 'puppeteer'
 
 declare let BigInt: any
-const doEvents = () => new Promise((resolve) => setImmediate(resolve));
+
+const doEvents = () => new Promise((resolve) => setImmediate(resolve))
+const browserPromise = puppeteer.launch({args: ["--no-sandbox"]})
+const pagePromise: Promise<puppeteer.Page> = new Promise(async (resolve, reject) => {
+    try {
+        const browser = await browserPromise
+        console.log("Got browser")
+        const page = await browser.newPage()
+        console.log("navigating to ", `file:///${__dirname}/pypyjs.html`)
+        await page.goto(`file:///${__dirname}/pypyjs.html`, {waitUntil: 'networkidle2'})
+        console.log("page loaded")
+        resolve(page)
+    } catch (e) {
+        reject(e)
+    }
+})
+
+browserPromise.catch(x=>console.error)
+pagePromise.catch(x=>console.error)
 
 /**
  * Uses a recent chrome to run code inside the chrome sandbox.
@@ -15,21 +32,23 @@ const doEvents = () => new Promise((resolve) => setImmediate(resolve));
  * @param args: args, in case the script takes any.
  */
 async function eval_in_chrome(script, ...args): Promise<string> {
-    const browser = await puppeteer.launch({args: ["--no-sandbox"]})
+    //const browser = await puppeteer.launch({args: ["--no-sandbox"]})
     try {
-        //console.log("running", script, ...args)
-        const page = await browser.newPage()
+        console.log("running", script, ...args)
+        //const browser = await puppeteer.launch({args: ["--no-sandbox"]})
+        //const page = await browser.newPage()
+        //await page.goto(`file:///${__dirname}/pypyjs.html`)
         //const response = await page.goto(`file:///${__dirname}/pypyjs.html`)
         //console.log(response) Too slow :/
+        const page = await pagePromise
+        console.log("Goiong on evaling", script, args)
         const result = await page.evaluate(script, ...args)
-        await page.close()
-        // console.log("closed. returning.", result)
+        //await page.close()
+        console.log("closed. returning.", result)
         return result
     } catch (e) {
         //console.log("An eval error occurred: ", e)
-        return ""+e.message
-    } finally {
-        await browser.close()
+        return "" + e.message
     }
 }
 
@@ -172,10 +191,12 @@ export async function wee_exec(code: string) {
     }
 }
 
-
 if (require.main === module) {
     //eval_in_chrome("1+1")
     const wee = process.argv[2];
     //console.log(wee)
     wee_exec(wee)
+        .then(x=>browserPromise)
+        .then(b=>b.close())
+        .then(x=>process.exit())
 }

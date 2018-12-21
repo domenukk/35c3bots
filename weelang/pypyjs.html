@@ -1,5 +1,6 @@
-<html>
+<html lang="de">
 <head>
+    <title>Secure Python</title>
     <meta content='text/html; charset=utf-8' http-equiv='Content-Type'>
     <meta charset="utf-8">
     <script src="node_modules/pypyjs/lib/FunctionPromise.js" type="text/javascript"></script>
@@ -7,16 +8,16 @@
 </head>
 <body>
 <script>
-async function py_eval(code) {
+pypyjs.ready()
+function py_eval(code) {
     //console.log("exec: '" + code + "'");
-    await pypyjs.ready();
     //console.log("pypy loaded");
     stdout = ""
     stderr = ""
     pypyjs.stdout = x => stdout += x
     pypyjs.stderr = x => stderr += x
     try {
-        var response = await pypyjs.exec(code);
+        var response = pypyjs.exec(`print(${code})`)
         //console.log("Rsp:", response);
         return stdout + stderr
     } catch (err) {
@@ -27,4 +28,5 @@ async function py_eval(code) {
 }
 </script>
 </body>
+<div id="flag">35C3_I_SHOW_YOU_HOW_DEEP_THE_RABBIT_HOLE_GOES</div>
 </html>
