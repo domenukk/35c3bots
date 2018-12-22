@@ -14,7 +14,7 @@ from subprocess import STDOUT, check_output
 
 import requests
 from flask import Flask, send_from_directory, send_file, request, Response, g, make_response, jsonify
-from flags import LOGGED_IN, TOKEN, DB_SECRET, NULL, UNENCRYPTED
+from flags import LOGGED_IN, TOKEN, DB_SECRET, NULL, DECRYPTED
 
 STATIC_PATH = "../client/site"
 DATABASE = ".paperbots.db"
@@ -452,16 +452,16 @@ fun get_cypher(key: pubkey): string
 end
     
 alert(get_cypher(key))
-    """.format(UNENCRYPTED)
+    """.format(DECRYPTED)
     return jsonify({"enc": runwee(wee)})
 
 
-@app.route("/debug", methods=["POST"])
+@app.route("/debug", methods=["GET"])
 def debug():
-    json = request.get_json(force=True)
+    # json = request.get_json(force=True)
     # TODO: Python Eval
     # eval = json["eval"]
-    return ""
+    return '<p style="background-color: #ffe4e1;"> LEA</p>'
 
 
 if __name__ == "__main__":
