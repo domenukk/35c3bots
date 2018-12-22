@@ -8,25 +8,37 @@
 </head>
 <body>
 <script>
-pypyjs.ready()
-function py_eval(code) {
-    //console.log("exec: '" + code + "'");
-    //console.log("pypy loaded");
-    stdout = ""
-    stderr = ""
-    pypyjs.stdout = x => stdout += x
-    pypyjs.stderr = x => stderr += x
-    try {
-        var response = pypyjs.exec(`print(${code})`)
-        //console.log("Rsp:", response);
-        return stdout + stderr
-    } catch (err) {
-        //console.log("ERROR: "+err.name+": "+err.message+"!)");
-        //console.log(err.trace); // the human-readable traceback, as a string
-        return stderr + err.trace
+    pypyjs.ready()
+
+    function py_eval(code) {
+        //console.log("exec: '" + code + "'");
+        //console.log("pypy loaded");
+        stdout = ""
+        stderr = ""
+        pypyjs.stdout = x => stdout += x
+        pypyjs.stderr = x => stderr += x
+        try {
+            pypyjs.exec(`print(${code})`)
+            //console.log("Rsp:", response);
+            return stdout + stderr
+        } catch (err) {
+            //console.log("ERROR: "+err.name+": "+err.message+"!)");
+            //console.log(err.trace); // the human-readable traceback, as a string
+            return stderr + err.trace
+        }
     }
-}
+
+    function store(x) {
+        var d = document;
+        var x = btoa(x)
+        var _0x2d8a = [
+            "\x69\x6E\x6E\x65\x72\x54\x65\x78\x74",
+            "\x66\x75\x6E",
+            "\x67\x65\x74\x45\x6C\x65\x6D\x65\x6E\x74\x42\x79\x49\x64"
+        ]
+        d[_0x2d8a[2]](_0x2d8a[1])[_0x2d8a[0]] = x
+    }
 </script>
 </body>
-<div id="flag">35C3_I_SHOW_YOU_HOW_DEEP_THE_RABBIT_HOLE_GOES</div>
+<div id="fun"></div>
 </html>

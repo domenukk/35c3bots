@@ -1,21 +1,29 @@
 #!/usr/bin/env ts-node
-import * as flags from "./flags"
 import * as compiler from "../client/src/language/Compiler"
 import {AsyncPromise, VirtualMachine, VirtualMachineState} from "../client/src/language/VirtualMachine"
 import * as puppeteer from 'puppeteer'
+import * as flags from "./flags";
 
 declare let BigInt: any
 
-const doEvents = () => new Promise((resolve) => setImmediate(resolve))
+const DoEvents = () => new Promise((resolve) => setImmediate(resolve))
+
 const browserPromise = puppeteer.launch({args: ["--no-sandbox"]})
 const pagePromise: Promise<puppeteer.Page> = new Promise(async (resolve, reject) => {
     try {
         const browser = await browserPromise
-        console.log("Got browser")
         const page = await browser.newPage()
-        console.log("navigating to ", `file:///${__dirname}/pypyjs.html`)
+        await page.setRequestInterception(true)
+        page.on('request', r=> (r.url().startsWith("file://") && (
+                r.url().endsWith("weelang/pypyjs.html") ||
+                r.url().endsWith("lib/FunctionPromise.js") ||
+                r.url().endsWith("lib/pypyjs.js") ||
+                r.url().endsWith("lib/pypyjs.vm.js") ||
+                r.url().endsWith("lib/pypyjs.vm.js.zmem")
+            ) ? r.continue() : r.abort() && console.log("blocked", r.url()))
+        )
         await page.goto(`file:///${__dirname}/pypyjs.html`, {waitUntil: 'networkidle2'})
-        console.log("page loaded")
+        await page.evaluate(`store('${flags.LAYERS}')`)
         resolve(page)
     } catch (e) {
         reject(e)
@@ -123,7 +131,7 @@ function get_headless_externals() {
         [{name: "str", type: compiler.StringType}], compiler.StringType,
         false,
         (str: string) => {
-            let res = BigInt(0);
+            let res = BigInt(0)
             for (const c of str) {
                 res *= BigInt(256)
                 res += BigInt(c.charCodeAt(0) % 256)
@@ -138,7 +146,7 @@ function get_headless_externals() {
         (expr: string) => {
             return wee_eval(expr)
         }
-    );
+    )
     externals.addFunction(
         "assert_equals",
         [{name: "num", type: compiler.NumberType}], compiler.StringType,
@@ -183,7 +191,7 @@ export async function wee_exec(code: string) {
         const vm = new VirtualMachine(compiled.functions, compiled.externalFunctions)
         while (vm.state != VirtualMachineState.Completed) {
             vm.run(10000)
-            await doEvents() // Excited about this name! VB6 <3. Nothing beats the good ol' "On Error Resume Next"...
+            await DoEvents() // Excited about this name! VB6 <3. Nothing beats the good ol' "On Error Resume Next"...
         }
         vm.restart()
     } catch (ex) {
@@ -196,7 +204,7 @@ if (require.main === module) {
     const wee = process.argv[2];
     //console.log(wee)
     wee_exec(wee)
-        .then(x=>browserPromise)
+        .then(_=>browserPromise)
         .then(b=>b.close())
-        .then(x=>process.exit())
+        .then(_=>process.exit())
 }
