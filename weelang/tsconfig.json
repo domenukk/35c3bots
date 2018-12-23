@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
-    "target": "esnext"
+    "target": "es5",
+    "lib": ["esnext", "dom"]
   },
+  "files": ["weeterpreter.ts"]
 }

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import inspect
 import os
 import random
 import sqlite3
@@ -21,6 +22,7 @@ DATABASE = ".paperbots.db"
 MIGRATION_PATH = "./db/V1__Create_tables.sql"
 THUMBNAIL_PATH = os.path.join(STATIC_PATH, "thumbnails")
 WEE_PATH = "../weelang"
+WEETERPRETER = "weeterpreter.ts"
 WEE_TIMEOUT = 5
 
 os.makedirs(THUMBNAIL_PATH, exist_ok=True)
@@ -157,9 +159,9 @@ def signup():
     name = escape(json["name"].strip())
     email = json["email"].strip()
     if len(name) == 0:
-        raise Exception("Username must not be empty.")
+        raise Exception("InvalidUserName")
     if len(email) == 0:
-        raise Exception("Email must not be empty.")
+        raise Exception("InvalidEmailAddress")
     if not len(email.split("@")) == 2:
         raise Exception("InvalidEmailAddress")
     email = escape(email.strip())
@@ -310,7 +312,7 @@ def savethumbnail():
     project_username, = query_db("SELECT userName FROM projects WHERE code=?", (project_id,))
     if project_username != username:
         raise Exception("Hack on WeeLang, not the Server!")
-    with open(os.path.join(THUMBNAIL_PATH, project_id), "wb+") as f:
+    with open(os.path.join(THUMBNAIL_PATH, "{}.png".format(project_id)), "wb+") as f:
         f.write(decoded)
     return jsonify({"projectId": project_id})
 
@@ -408,7 +410,7 @@ def runwee(wee: string) -> string:
     print("{}: running {}".format(request.remote_addr, wee))
     result = check_output(
         ["ts-node", '--cacheDirectory', os.path.join(WEE_PATH, "__cache__"),
-         os.path.join(WEE_PATH, "weeterpreter.ts"), wee], shell=False, stderr=STDOUT, timeout=WEE_TIMEOUT,
+         os.path.join(WEE_PATH, WEETERPRETER), wee], shell=False, stderr=STDOUT, timeout=WEE_TIMEOUT,
         cwd=WEE_PATH).decode("utf-8")
     print("{}: result: {}".format(request.remote_addr, result))
     return result
@@ -463,15 +465,54 @@ def encryptiontest():
     return jsonify({"enc": encrypted})
 
 
-@app.route("/debug", methods=["GET"])
-def debug():
-    # json = request.get_json(force=True)
-    # TODO: Python Eval
-    # eval = json["eval"]
-    return '<p style="background-color: #ffe4e1;"> LEA</p>'
+# The pyserver is almost 100% open source!
+# Just enough to barely get it running but never to its full potential.
+# We got very positive feedback on HN and nobody bothered to run it anyway.
+# 11/10 would open source again.
+@app.route("/pyserver/server.py", methods=["GET"])
+def server_source():
+    return Response(inspect.getsource(sys.modules[__name__]), mimetype='text/x-python')
+
+
+@app.route("/pyserver/flags.py", methods=["GET"])
+def server_flags():
+    return Response("""
+DB_SECRET = "35C3_???"
+DECRYPTED = "35C3_???"
+DEV_NULL =  "35C3_???"
+LOCALHOST = "35C3_???"
+LOGGED_IN = "35C3_???"
+NOT_IMPLEMENTED = "35C3_???"
+    """, mimetype='text/x-python')
+
+
+@app.route("/weelang/{}".format(WEETERPRETER), methods=["GET"])
+def weeterpreter_source():
+    return send_file(os.path.join(WEE_PATH, WEETERPRETER), mimetype="text/x-typescript")
+
+
+@app.route("/weelang/package.json", methods=["GET"])
+def weeterpreter_deps():
+    return send_file(os.path.join(WEE_PATH, "package.json"))
+
+
+@app.route("/weelang/flags.ts", methods=["GET"])
+def weeterpreter_flags():
+    return Response("""
+export const CONVERSION_ERROR = "35C3_???"
+export const EQUALITY_ERROR = "35C3_???"
+export const LAYERS = "35C3_???"
+export const NUMBER_ERROR = "35C3_???"
+export const WEE_R_LEET = "35C3_???"
+export const WEE_TOKEN = "35C3_???"
+    """, mimetype="text/x-typescript")
+
+
+@app.before_first_request
+def maybe_init_db():
+    if not os.path.exists(DATABASE):
+        init_db()
 
 
 if __name__ == "__main__":
-    if not os.path.exists(DATABASE):
-        init_db()
     app.run(host="0.0.0.0", port=8075)
