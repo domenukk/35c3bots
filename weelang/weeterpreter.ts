@@ -42,17 +42,17 @@ pagePromise.catch(x=>console.error)
 async function eval_in_chrome(script, ...args): Promise<string> {
     //const browser = await puppeteer.launch({args: ["--no-sandbox"]})
     try {
-        console.log("running", script, ...args)
+        //console.log("running", script, ...args)
         //const browser = await puppeteer.launch({args: ["--no-sandbox"]})
         //const page = await browser.newPage()
         //await page.goto(`file:///${__dirname}/pypyjs.html`)
         //const response = await page.goto(`file:///${__dirname}/pypyjs.html`)
         //console.log(response) Too slow :/
         const page = await pagePromise
-        console.log("Goiong on evaling", script, args)
+        //console.log("Goiong on evaling", script, args)
         const result = await page.evaluate(script, ...args)
         //await page.close()
-        console.log("closed. returning.", result)
+        //console.log("closed. returning.", result)
         return result
     } catch (e) {
         //console.log("An eval error occurred: ", e)

@@ -5,6 +5,7 @@ docker/data/
 scripts/report.html
 server/files
 __pycache__
+__cache__
 venv
 *.db
 thumbnails

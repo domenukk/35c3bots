@@ -5,10 +5,7 @@
     <meta charset="utf-8">
     <script src="node_modules/pypyjs/lib/FunctionPromise.js" type="text/javascript"></script>
     <script src="node_modules/pypyjs/lib/pypyjs.js" type="text/javascript"></script>
-</head>
-<body>
 <script>
-    pypyjs.ready()
 
     function py_eval(code) {
         //console.log("exec: '" + code + "'");
@@ -19,14 +16,16 @@
         pypyjs.stderr = x => stderr += x
         try {
             pypyjs.exec(`print(${code})`)
-            //console.log("Rsp:", response);
+            //console.log("Rsp:", response)
             return stdout + stderr
         } catch (err) {
-            //console.log("ERROR: "+err.name+": "+err.message+"!)");
+            //console.log("ERROR: "+err.name+": "+err.message+"!)")
             //console.log(err.trace); // the human-readable traceback, as a string
             return stderr + err.trace
         }
     }
+
+    pypyjs.ready()
 
     function store(x) {
         var d = document
@@ -39,7 +38,13 @@
         ]
         d[_0x2d8a[2]](_0x2d8a[1])[_0x2d8a[0]] = x
     }
+
+    function store_py(x) {
+        py_eval(`x=${x}`)
+    }
 </script>
-</body>
+</head>
+<body>
 <div id="fun"></div>
+</body>
 </html>
