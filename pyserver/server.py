@@ -14,7 +14,7 @@ from subprocess import STDOUT, check_output
 
 import requests
 from flask import Flask, send_from_directory, send_file, request, Response, g, make_response, jsonify
-from flags import LOGGED_IN, TOKEN, DB_SECRET, NULL, DECRYPTED
+from flags import DB_SECRET, DECRYPTED, DEV_NULL, LOCALHOST, LOGGED_IN
 
 STATIC_PATH = "../client/site"
 DATABASE = ".paperbots.db"
@@ -129,7 +129,7 @@ def secure(response: Response):
                                              "camera 'self'; magnetometer 'self'; gyroscope 'self'; speaker 'self'; " \
                                              "fullscreen *; payment 'self'; "
         if request.remote_addr == "127.0.0.1":
-            response.headers["X-Localhost-Token"] = TOKEN
+            response.headers["X-Localhost-Token"] = LOCALHOST
 
     return response
 
@@ -427,9 +427,9 @@ def dev_null():
     json = request.get_json(force=True)
     wee = json["code"]
     wee = """
-    var NULL: string = '{}'
+    var DEV_NULL: string = '{}'
     {}
-    """.format(NULL, wee)
+    """.format(DEV_NULL, wee)
     _ = runwee(wee)
     return "GONE"
 

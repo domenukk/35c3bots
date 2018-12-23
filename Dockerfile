@@ -24,7 +24,6 @@ WORKDIR /app/weelang
 RUN npm install
 # run puppeteer installer one more time - didn't always do it (?)
 RUN npm install puppeteer
-# run tsc once to cache most files
 
 WORKDIR /app/pyserver
 RUN pip3 install -r ./requirements.txt

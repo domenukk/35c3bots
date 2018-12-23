@@ -180,7 +180,7 @@ function get_headless_externals() {
         "assert_leet",
         [{name: "maybe_leet", type: compiler.NumberType}], compiler.StringType,
         false,
-        (maybe_leet: number) => maybe_leet !== 0x1337 ? "WEE AIN'T LEET" : flags.SIMPLE
+        (maybe_leet: number) => maybe_leet !== 0x1337 ? "WEE AIN'T LEET" : flags.WEE_R_LEET
     )
     return externals
 }
