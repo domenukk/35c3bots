@@ -14,29 +14,29 @@ Some cool Projects can be created in Wee, like:
 [this](https://paperbots.io/project.html?id=URJgCh), [this](https://paperbots.io/project.html?id=kpyyrl)
 and [that](https://paperbots.io/project.html?id=F53thj).
 
-Since we already know Java, though, we ported the server (Server.java and Paperbots.java) to python (WIP) and even add awesome functionality.
-Get the new open sourced server at `/pyserver/server.py`.
+Since we already know Java, though, we ported the server (Server.java and Paperbots.java) to Python (WIP) and constantly add awesome functionality.
+Get the new open-sourced server at `/pyserver/server.py`.
 
 Anything unrelated to the new server is left unchanged from commit `dd059961cbc2b551f81afce6a6177fcf61133292` at 
 badlogics [paperbot github](https://github.com/badlogic/paperbots) (mirrored up to this commit [here](https://github.com/domenukk/paperbots/)).
 
 We even added new features to this better server, like server-side Wee evaluation!
 
-To make server-side Wee the language of the future, we've added some awesome runtime functions. 
-To make sure our VM is 100% safe and secure, there are also a few assertion functions in server-side Wee that you don't have to be concerned about. 
+To make server-side Wee the language of the future, we already implemented awesome runtime functions. 
+To make sure our VM is 100% safe and secure, there are also assertion functions in server-side Wee that you don't have to be concerned about. 
 
 
 ## Conversion Error
 [MISC] Easy to Medium 
 
-With `assert_string(str: string)`, we added a function making sure our VM properly handles conversions. 
-So far we never triggered the assertion.
+With `assert_string(str: string)`, we assert that our VM properly handles conversions. 
+So far we never triggered the assertion and are certain it's impossible.
 
 
 ## DB Secret
 [WEB] Medium
 
-To make some secure actions possible in the future, we created a specific DB_SECRET, only known to us.
+To enable secure microservices (or whatever, we don't know yet) over Wee in the future, we created a specific DB_SECRET, only known to us. This token is super important and extremely secret, hence the name.
 The only way an attacker could get hold of it is to serve good booze to the admins.
 Pretty sure it's otherwise well protected on our secure server.
 
@@ -44,8 +44,8 @@ Pretty sure it's otherwise well protected on our secure server.
 
 [Crypto] Medium
 
-Did you guys know server-side Wee will supports a variety of crypto operations in the future?
-How else could we with ever catch up to other short-named languages like GO or all the Cs?
+Did you know server-side Wee will supports a variety of crypto operations in the future?
+How else could Wee ever catch up to other short-named languages like Go or all the Cs?
 Anyway it's still in testing.
 If you already want to take it for a spin, try `/wee/encryptiontest`.
 
@@ -54,18 +54,18 @@ If you already want to take it for a spin, try `/wee/encryptiontest`.
 
 [MISC] Hard
 
-We're not the first but definitely the latest to offer dev-null-as=a-service.
+We're not the first but definitely the latest to offer dev-null-as-a-service.
 Pretty sure we're also the first to offer `Wee-piped-to-dev-null-as-a-service`[WPtDNaaS].
-More valuable than most blockchains (old joke, we know).
+(We don't pipe anything, but the users don't care).
+This service is more useful than most blockchains (old joke, we know).
 
-Anyway this novel endpoint take input at `/wee/dev/null` and returns nothing.
-
+Anyway this novel endpoint takes input at `/wee/dev/null` and returns nothing.
 
 ## EQUALITY ERROR
 
 [MISC] Medium 
 
-At `assert_equals(num: number)`, we added a function making sure our VM properly handles equality. 
+At `assert_equals(num: number)`, we've added an assert to make sure our VM properly handles equality. 
 With only a few basic types, it's impossible to mess this one up, so the assertion has never been triggered. 
 In case you do by accident, please report the output.
 
@@ -74,20 +74,20 @@ In case you do by accident, please report the output.
 
 [MISC] Hard
 
-An engineer added a special kind of token to our server: the LAYERS token is unique and there is now ay to ever extract it.
-This way, if anybody every searches for it on the internet, we have, like, a mole, or something.
+An engineer added a special kind of token to our server: the LAYERS token is unique and there is no way to ever extract it.
+This means, if anybody every searches for it on the internet or submits it here, we know we have, like, a mole, or something.
 
 Dunno. Well we believe it cannot be extracted - so don't even bother.
 
 
 ## Localhost
 
-[Web] Hard
+[Web] Medium
 
 We came up with some ingenious solutions to the problem of password reuse. 
-For users, we don't use password auth but send around mails instead (tba).
-For test automation, we didn't want to send around mails all the time, so instead we introduced the localhost header.
-If we send a request to our server from the same server, it will set the localhost header to a secret only the server knows.
+For users, we don't use password auth but send around mails instead. This works well for humans but not for robots.
+To make test automation possible, we didn't want to send those mails all the time, so instead we introduced the localhost header.
+If we send a request to our server from the same host, our state-of-the-art python server sets the localhost header to a secret only known to the server.
 This is bullet-proof, luckily.
 
 
@@ -116,9 +116,10 @@ Just imagine the things that could go wrong if it wouldn't!
 
 Somebody forgot a useless assert function in the interpreter somewhere. 
 In our agile development lifecycle somebody added the function early on to prove it's possible.
-I'e only heared stories but apparently you can trigger it from Wee and it behaves differently on the input 0x1337. What a joker.
-We can address this issue over the next few sprints.
-Hopefully it doesn't crash some programs.
+Wev've only heared stories but apparently you can trigger it from Wee and it behaves differently for some "leet" input(?)
+What a joker.
+We will address this issue over the next few sprints.
+Hopefully it doesn't do any harm in the meantime.
 
 
 ## WEE TOKEN
@@ -128,12 +129,12 @@ Hopefully it doesn't crash some programs.
 We _need_ to make sure strings in Wee are also strings in our runtime.
 Apparently attackers got around this and actively exploit us!
 We do not know how.
-Calling out to haxkcsor1, brocowd, kobold.io:
-if anybody can show us how they did it (by calling `assert_string(str: string)`), please, please please submit us the token the VM will produce.
+Calling out to haxxor1, brocrowd, kobold.io,...:
+if anybody can show us how they did it, please, please please submit us the token the VM will produce.
+We added the function `assert_string(str: string)` for your convenience.
+
+You might get rich - or not. 
+It depends a bit on how we feel like and if you reach our technical support or just 1st level.
+Anyway: this is a call to arms and a desperate request, that, we think, is usually called Bugs-Bunny-Program... or something?
  
- 
- You might get rich - or not. 
- It all depends on how we feel like and if you reach our technical support or just 1st level.
- Anyway: this is a call to arms and a desperate request, that, we think, is usually called Bugs-Bunny-Program... or something?
- 
- Happy hacking.
+Happy hacking.
