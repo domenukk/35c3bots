@@ -70,6 +70,14 @@ With only a few basic types, it's impossible to mess this one up, so the asserti
 In case you do by accident, please report the output.
 
 
+## Not Implemented
+
+[Web] Hard++
+
+NOT_IMPLEMENTED was not implemented nor intended.
+Get it and profit.
+
+
 ## LAYERS
 
 [MISC] Hard
