@@ -1,22 +1,25 @@
-# Paperbots
-[![Build Status](https://travis-ci.org/badlogic/paperbots.svg?branch=master)](https://travis-ci.org/badlogic/paperbots)
+# 35C3BOTS
 
-[Paperbots](https://paperbots.io) is a browser-based programming environment geared towards beginners, teachers, as well as programmers who want a simple creative outlet.
+35C3BOTS is a fork of Paperbots, with 12 intended bugs and [challenges](CHALLENGES.md).
+It was part of the 35C3 Junior CTF but can still be used to train security principles in a real world scenario.
 
+Run it using `docker-compose build && docker-compose up` and access it on 127.0.0.1:8075.
 
 # 35c3 JuniorCTF Additions
 For Junior CTF, `./weelang` and `./pyserver` have been added.
 On top, all Dockerfiles and uwsgi.ini in this folder are new.
-Flags and exploits are inside `./pyserver/exploits` 
+Writeups/exploit scripts are listed in [`./pyserver/exploits`](pyserver/exploits)
 
 The infos to all challenges are listed in 
-`./CHALLENGES.md`
+[`./CHALLENGES.md`](CHALLENGES.md)
 
 To run the challenge-server, simply do `docker-compose build && docker-compose up` in the main folder.
 
 Players should have access to `./pyserver/server.py` and `./weelang/weeterpreter.ts`.
 
 # < original content below >
+
+[Paperbots](https://paperbots.io) is a browser-based programming environment geared towards beginners, teachers, as well as programmers who want a simple creative outlet.
 
 # Development
 Paperbots consists of a frontend written in TypeScript, and a backend written in Java.
