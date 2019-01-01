@@ -68,7 +68,7 @@ function wee_eval(expr: string): AsyncPromise<string> {
     }
     eval_in_chrome(expr).then((res) => {
         //console.log("Result ", expr, res)
-        asyncResult.value = res;
+        asyncResult.value = "" + res;
         asyncResult.completed = true
     }).catch((err) => {
         console.log("Unexpectged error in eval", expr, err)
