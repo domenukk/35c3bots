@@ -14,7 +14,7 @@ const pagePromise: Promise<puppeteer.Page> = new Promise(async (resolve, reject)
         const browser = await browserPromise
         const page = await browser.newPage()
         await page.setRequestInterception(true)
-        page.on('request', r=> (r.url().startsWith("file://") && (
+        page.on('request', r => (r.url().startsWith("file://") && (
                 r.url().endsWith("weelang/pypyjs.html") ||
                 r.url().endsWith("lib/FunctionPromise.js") ||
                 r.url().endsWith("lib/pypyjs.js") ||
@@ -30,8 +30,8 @@ const pagePromise: Promise<puppeteer.Page> = new Promise(async (resolve, reject)
     }
 })
 
-browserPromise.catch(x=>console.error)
-pagePromise.catch(x=>console.error)
+browserPromise.catch(x => console.error)
+pagePromise.catch(x => console.error)
 
 /**
  * Uses a recent chrome to run code inside the chrome sandbox.
@@ -165,7 +165,7 @@ function get_headless_externals() {
         "assert_conversion",
         [{name: "str", type: compiler.StringType}], compiler.StringType,
         false,
-        (str: string) => str.length === +str + "".length || !/^[1-9]+(\.[1-9]+)?$/.test(str)
+        (str: string) => str.length === ("" + (+str)).length || !/^[1-9]+(\.[1-9]+)?$/.test(str)
             ? "Convert to Pastafarianism" : flags.CONVERSION_ERROR
     )
     externals.addFunction(
@@ -204,7 +204,7 @@ if (require.main === module) {
     const wee = process.argv[2];
     //console.log(wee)
     wee_exec(wee)
-        .then(_=>browserPromise)
-        .then(b=>b.close())
-        .then(_=>process.exit())
+        .then(_ => browserPromise)
+        .then(b => b.close())
+        .then(_ => process.exit())
 }
