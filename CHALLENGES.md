@@ -29,7 +29,7 @@ To make sure our VM is 100% safe and secure, there are also assertion functions 
 ## Conversion Error
 [MISC] Easy to Medium 
 
-With `assert_string(str: string)`, we assert that our VM properly handles conversions. 
+With `assert_conversion(str: string)`, we assert that our VM properly handles conversions. 
 So far we never triggered the assertion and are certain it's impossible.
 
 
@@ -124,7 +124,7 @@ Just imagine the things that could go wrong if it wouldn't!
 
 Somebody forgot a useless assert function in the interpreter somewhere. 
 In our agile development lifecycle somebody added the function early on to prove it's possible.
-Wev've only heared stories but apparently you can trigger it from Wee and it behaves differently for some "leet" input(?)
+Wev've only heard stories but apparently you can trigger it from Wee and it behaves differently for some "leet" input(?)
 What a joker.
 We will address this issue over the next few sprints.
 Hopefully it doesn't do any harm in the meantime.
