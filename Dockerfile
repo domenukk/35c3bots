@@ -3,7 +3,7 @@ FROM tiangolo/uwsgi-nginx-flask:python3.7
 # Latest node version
 RUN apt-get -y update && apt-get -y upgrade
 RUN apt-get -y install curl
-RUN curl -sL https://deb.nodesource.com/setup_11.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get -y install nodejs
 
 RUN npm install -g ts-node typescript
